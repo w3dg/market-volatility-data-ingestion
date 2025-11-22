@@ -1,44 +1,56 @@
-import os
-from typing import Optional
-import json
 import yfinance as yf
 from utils.file_utils import save_json, load_json
 
 
-def fetchYFinance() -> Optional[dict]:
+def fetchYFinance() -> tuple[list, list]:
     # List of crypto tickers to fetch data for
     crypto_tickers = ["BTC-USD", "ETH-USD", "ADA-USD", "SOL-USD", "DOT-USD"]
 
     # Uncomment the following lines to fetch from API
-    # news_data = {}
-    # for ticker in crypto_tickers:
-    #     try:
-    #         ticker_obj = yf.Ticker(ticker)
-    #         news = ticker_obj.news
-    #         info = ticker_obj.info
-    #         news_data[ticker] = {"news": news, "info": info}
-    #     except Exception as e:
-    #         print(f"Error fetching data for {ticker}: {e}")
-    #         news_data[ticker] = {"news": [], "info": {}}
+    tickerdata = []
+    extracted_entries = []
 
-    # # Save to file
-    # save_json("yfinance.json", news_data)
-    # return news_data
+    for ticker in crypto_tickers:
+        try:
+            ticker_obj = yf.Ticker(ticker)
+            news = ticker_obj.news
+            info = ticker_obj.info
+
+            for entry in news:
+                e = entry.get("content")
+                extracted_entry = {
+                    "title": e.get("title"),
+                    "description": f"{e.get("summary", "")}. {e.get("description", "")}",
+                    "link": e.get("previewUrl", ""),
+                    "publisher": e.get("publisher"),
+                    "published_date": e.get("pubDate"),
+                    "ticker": ticker,
+                }
+                extracted_entries.append(extracted_entry)
+            tickerdata.append(
+                {"ticker": ticker, "info": info}
+            )  # TODO: filter this down to relevant fields only
+        except Exception as e:
+            print(f"Error fetching data for {ticker}: {e}")
+
+    # Save to file
+    save_json("yfinance_tickers.json", tickerdata)
+    save_json("yfinance_news.json", extracted_entries)
 
     # Load from saved file instead
-    contents = load_json("yfinance.json")
-    return contents
+    # extracted_entries = load_json("yfinance_news.json")
+
+    # if extracted_entries is None:
+    #     extracted_entries = []
+    # tickerdata = load_json("yfinance_tickers.json")
+
+    # if tickerdata is None:
+    #     tickerdata = []
+
+    return extracted_entries, tickerdata
 
 
 def getYFinanceData():
-    newsjson = fetchYFinance()
-    if newsjson is not None:
-        print("yfinance data fetched")
-        for ticker, data in newsjson.items():
-            print(f"Ticker: {ticker}")
-            print(f"News count: {len(data.get('news', []))}")
-            for article in data.get("news", []):
-                content = article.get("content", {})
-                print(f"  Title: {content.get('title')}")
-                print(f"  Description: {content.get('summary')}")
-            print()
+    extracted_entries, tickerdata = fetchYFinance()
+    print(f"Fetched {len(extracted_entries)} news entries from YFinance.")
+    print(f"Fetched {len(tickerdata)} ticker info from YFinance.")

@@ -3,6 +3,7 @@ from extractors.cointelegraph import getCoinTelegraph
 from extractors.coindesk import getCoinDesk
 from extractors.newsdataio import getNewsData
 from extractors.cryptopanic import getCryptoPanicData
+from extractors.reddit import getRedditData
 from extractors.yfinance import getYFinanceData
 
 load_dotenv()
@@ -20,6 +21,8 @@ def main():
     getCryptoPanicData()
     print("\nFetching YFinance data:")
     getYFinanceData()
+    print("\nFetching Reddit data:")
+    getRedditData()
 
 
 if __name__ == "__main__":

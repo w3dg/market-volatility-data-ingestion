@@ -1,9 +1,8 @@
-import json
 from typing import Optional
 import requests as r
 from fastfeedparser import FastFeedParserDict, parse as fastfeedparse
 
-from utils.file_utils import save_json
+from utils.file_utils import load_json, save_json
 
 
 def fetchCoinTelegraphNews() -> Optional[FastFeedParserDict]:
@@ -13,8 +12,22 @@ def fetchCoinTelegraphNews() -> Optional[FastFeedParserDict]:
         print("Could not fetch Coin telegraph")
         return None
     myfeed = fastfeedparse(res.text)
-    feedjson = json.dumps(myfeed)
-    save_json("cointelegraph.json", feedjson)
+    feedentries = myfeed.get("entries", [])
+    extracted_entries = []
+    for entry in feedentries:
+        extracted_entry = {
+            "id": entry.get("id"),
+            "title": entry.get("title"),
+            "link": entry.get("link"),
+            "published": entry.get("published"),
+            "description": entry.get("description"),
+        }
+        extracted_entries.append(extracted_entry)
+    save_json("cointelegraph.json", extracted_entries)
+
+    # load from saved file
+    # myfeed = load_json("cointelegraph.json")
+
     return myfeed
 
 

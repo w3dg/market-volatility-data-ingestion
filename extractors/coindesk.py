@@ -1,9 +1,8 @@
-import json
 from typing import Optional
 import requests as r
 from fastfeedparser import FastFeedParserDict, parse as fastfeedparse
 
-from utils.file_utils import save_json
+from utils.file_utils import save_json, load_json
 
 
 def fetchCoinDeskNews() -> Optional[FastFeedParserDict]:
@@ -13,8 +12,22 @@ def fetchCoinDeskNews() -> Optional[FastFeedParserDict]:
         print("Could not fetch CoinDesk")
         return None
     myfeed = fastfeedparse(res.text)
-    feedjson = json.dumps(myfeed)
-    save_json("coindesk.json", feedjson)
+    feedentries = myfeed.get("entries", [])
+    extracted_entries = []
+    for entry in feedentries:
+        extracted_entry = {
+            "id": entry.get("id"),
+            "title": entry.get("title"),
+            "link": entry.get("link"),
+            "description": entry.get("description"),
+            "published": entry.get("published"),
+        }
+        extracted_entries.append(extracted_entry)
+    save_json("coindesk.json", extracted_entries)
+
+    # Load from saved file
+    # myfeed = load_json("coindesk.json")
+
     return myfeed
 
 
