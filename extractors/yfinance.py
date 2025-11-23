@@ -1,5 +1,6 @@
 import yfinance as yf
 from utils.file_utils import save_json, load_json
+import json
 
 
 def fetchYFinance() -> tuple[list, list]:
@@ -19,17 +20,37 @@ def fetchYFinance() -> tuple[list, list]:
             for entry in news:
                 e = entry.get("content")
                 extracted_entry = {
+                    "id": e.get("id"),
                     "title": e.get("title"),
                     "description": f"{e.get("summary", "")}. {e.get("description", "")}",
-                    "link": e.get("previewUrl", ""),
+                    "link": e.get("previewUrl"),
                     "publisher": e.get("publisher"),
                     "published_date": e.get("pubDate"),
                     "ticker": ticker,
                 }
                 extracted_entries.append(extracted_entry)
             tickerdata.append(
-                {"ticker": ticker, "info": info}
-            )  # TODO: filter this down to relevant fields only
+                {
+                    "ticker": ticker,
+                    "regularMarketChange": info.get("regularMarketChange"),
+                    "exchange": info.get("exchange"),
+                    "dayLow": info.get("dayLow"),
+                    "dayHigh": info.get("dayHigh"),
+                    "open": info.get("open"),
+                    "currency": info.get("currency"),
+                    "priceHint": info.get("priceHint"),
+                    "regularMarketPreviousClose": info.get(
+                        "regularMarketPreviousClose"
+                    ),
+                    "regularMarketOpen": info.get("regularMarketOpen"),
+                    "regularMarketDayLow": info.get("regularMarketDayLow"),
+                    "regularMarketDayHigh": info.get("regularMarketDayHigh"),
+                    "regularMarketChangePercent": info.get(
+                        "regularMarketChangePercent"
+                    ),
+                    "regularMarketChangePrice": info.get("regularMarketChangePrice"),
+                }
+            )
         except Exception as e:
             print(f"Error fetching data for {ticker}: {e}")
 

@@ -9,9 +9,14 @@ wheels/
 # Virtual environments
 .venv
 
+# ignore env files
 .env*
 
+# ignore pulled in local data
 *json
+*service-account*.json
+
+
 Created .gitignore file for flag type python.
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -231,3 +236,4 @@ __marimo__/
 .streamlit/secrets.toml
 
 extracted_data/
+bq_data/
