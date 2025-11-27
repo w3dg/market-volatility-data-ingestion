@@ -1,9 +1,10 @@
 import os
-import requests as r
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
-from utils.file_utils import save_json, load_json
+import requests as r
+
+from utils.file_utils import load_json, save_json
 
 subreddits = ["CryptoCurrency", "ethfinance", "CryptoMarkets", "ethereum"]
 # r/ethereum has daily discussion posts
@@ -36,7 +37,7 @@ def fetchRedditPosts(subreddits, limit=10) -> list[dict]:
         post_data = post["data"]
         results.append(
             {
-                "id": f"{post_data.get("subreddit_id")}-{post_data.get("id")}",
+                "id": f"{post_data.get('subreddit_id')}-{post_data.get('id')}",
                 "title": post_data.get("title"),
                 "url": post_data.get("url"),
                 "description": post_data.get("selftext"),

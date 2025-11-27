@@ -1,9 +1,13 @@
 import os
-from google.cloud import bigquery
-from google.api_core.exceptions import GoogleAPICallError
 from concurrent.futures import TimeoutError
+
+from dotenv import load_dotenv
+from google.api_core.exceptions import GoogleAPICallError
+from google.cloud import bigquery
+
 import gcloud.schemas as schemas
 
+load_dotenv()
 
 client = bigquery.Client(os.getenv("GCP_BQ_PROJECT_NAME", "market-volatility"))
 dataset_name = os.getenv("GCP_BQ_DATASET_NAME", "sources")

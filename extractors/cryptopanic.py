@@ -1,8 +1,9 @@
 import os
 from typing import Optional
-import json
+
 import requests as r
-from utils.file_utils import save_json, load_json
+
+from utils.file_utils import load_json, save_json
 
 
 def fetchCryptoPanic() -> Optional[list[dict]]:
@@ -31,7 +32,7 @@ def fetchCryptoPanic() -> Optional[list[dict]]:
             "published_at": entry.get("published_at"),
         }
         extracted_entry["url"] = (
-            f"https://cryptopanic.com/{entry.get("kind")}/{entry.get('id')}/{entry.get('slug')}"
+            f"https://cryptopanic.com/{entry.get('kind')}/{entry.get('id')}/{entry.get('slug')}"
         )
 
         extracted_entries.append(extracted_entry)

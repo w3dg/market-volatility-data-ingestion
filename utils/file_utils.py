@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 DATA_FOLDER = "extracted_data"
 BQ_DATA_FOLDER = "bq_data"

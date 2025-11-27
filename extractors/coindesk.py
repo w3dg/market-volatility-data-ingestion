@@ -1,9 +1,11 @@
 import os
 from typing import Optional
-import requests as r
-from fastfeedparser import FastFeedParserDict, parse as fastfeedparse
 
-from utils.file_utils import save_json, load_json
+import requests as r
+from fastfeedparser import FastFeedParserDict
+from fastfeedparser import parse as fastfeedparse
+
+from utils.file_utils import load_json, save_json
 
 
 def fetchCoinDeskNews() -> Optional[FastFeedParserDict]:

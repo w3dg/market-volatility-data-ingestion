@@ -1,7 +1,8 @@
 import os
+
 import yfinance as yf
-from utils.file_utils import save_json, load_json
-import json
+
+from utils.file_utils import load_json, save_json
 
 
 def fetchYFinance() -> tuple[list, list]:
@@ -23,7 +24,7 @@ def fetchYFinance() -> tuple[list, list]:
                 extracted_entry = {
                     "id": e.get("id"),
                     "title": e.get("title"),
-                    "description": f"{e.get("summary", "")}. {e.get("description", "")}",
+                    "description": f"{e.get('summary', '')}. {e.get('description', '')}",
                     "link": e.get("previewUrl"),
                     "publisher": e.get("publisher"),
                     "published_date": e.get("pubDate"),

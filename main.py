@@ -1,17 +1,15 @@
 from dotenv import load_dotenv
 
-load_dotenv()
-
-from extractors.cointelegraph import getCoinTelegraph
+import gcloud.bq as bq
 from extractors.coindesk import getCoinDesk
-from extractors.newsdataio import getNewsData
+from extractors.cointelegraph import getCoinTelegraph
 from extractors.cryptopanic import getCryptoPanicData
+from extractors.newsdataio import getNewsData
 from extractors.reddit import getRedditData
 from extractors.yfinance import getYFinanceData
-
 from utils.file_utils import convertToBQJSONFormat
 
-import gcloud.bq as bq
+load_dotenv()
 
 
 def main():

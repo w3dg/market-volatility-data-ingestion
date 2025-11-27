@@ -1,8 +1,9 @@
 import os
 from typing import Optional
-import json
+
 import requests as r
-from utils.file_utils import save_json, load_json
+
+from utils.file_utils import load_json, save_json
 
 
 def fetchNewsDataIO() -> Optional[list[dict]]:
