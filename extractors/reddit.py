@@ -42,7 +42,7 @@ def fetchRedditPosts(subreddits, limit=10) -> list[dict]:
                 "title": post_data.get("title"),
                 "url": post_data.get("url"),
                 "description": post_data.get("selftext"),
-                "created_utc": post_data.get("created_utc"),
+                "created_utc": str(post_data.get("created_utc")),
                 "subreddit": post_data.get("subreddit"),
             }
         )

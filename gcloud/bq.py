@@ -10,9 +10,11 @@ from gcloud.tableconfig import getTableConfig
 
 load_dotenv()
 
-client = bigquery.Client(os.getenv("GCP_BQ_PROJECT_NAME", "market-volatility"))
-dataset_name = os.getenv("GCP_BQ_DATASET_NAME", "sources")
-dataset_ref = client.dataset(dataset_name)
+PROJECT_NAME = os.getenv("GCP_BQ_PROJECT_NAME", "market-volatility")
+DATASET_NAME = os.getenv("GCP_BQ_DATASET_NAME", "sources")
+
+client = bigquery.Client(PROJECT_NAME)
+dataset_ref = client.dataset(DATASET_NAME)
 
 TABLE_CONFIG = getTableConfig()
 
@@ -26,6 +28,71 @@ def createTableIfNotExists(table_ref, schema):
         print(
             f"Table {table.project}.{table.dataset_id}.{table.table_id} already exists, not creating again."
         )
+
+
+def build_merge_query(
+    base_table: str,
+    staging_table: str,
+    key_columns: list[str],
+    all_columns: list[str],
+) -> str:
+    full_base_table_name = f"`{PROJECT_NAME}.{DATASET_NAME}.{base_table}`"
+    full_staging_table_name = f"`{PROJECT_NAME}.{DATASET_NAME}.{staging_table}`"
+
+    # ON clause: T.key1 = S.key1 AND T.key2 = S.key2 ...
+    on_clause = " AND ".join([f"T.{col} = S.{col}" for col in key_columns])
+
+    # UPDATE SET T.col = S.col for all non-key columns
+    non_key_cols = [c for c in all_columns if c not in key_columns]
+    update_assignments = ",\n        ".join([f"T.{c} = S.{c}" for c in non_key_cols])
+
+    # INSERT (col1, col2, ...) VALUES (S.col1, S.col2, ...)
+    insert_cols = ", ".join(all_columns)
+    insert_values = ", ".join([f"S.{c}" for c in all_columns])
+
+    merge_query = f"""
+    MERGE {full_base_table_name} T
+    USING {full_staging_table_name} S
+    ON {on_clause}
+    WHEN MATCHED THEN
+      UPDATE SET
+        {update_assignments}
+    WHEN NOT MATCHED THEN
+      INSERT ({insert_cols})
+      VALUES ({insert_values});
+    """
+    return merge_query
+
+
+def dedupe_df(df, key_cols, order_cols=None):
+    """
+    Keep one row per key, optionally preferring the 'latest' based on order_cols.
+    To avoid having the following error, `UPDATE/MERGE must match at most one source row for each target row`
+    """
+    if order_cols:
+        df = df.sort_values(order_cols)
+    return df.drop_duplicates(
+        subset=key_cols, keep="last"
+    )  # keeps the last row in the sorted order
+
+
+def upsert_into_bq(table_name: str):
+    cfg = TABLE_CONFIG[table_name]
+
+    all_columns = [field.name for field in cfg["schema"]]
+    query = build_merge_query(
+        base_table=cfg["table"],
+        staging_table=cfg["staging_table"],
+        key_columns=cfg["keys"],
+        all_columns=all_columns,
+    )
+
+    print(f"Merging into BQ table {table_name}")
+    # print(query)
+
+    job = client.query(query)
+    job.result()
+    print(f"[{table_name}] MERGE completed.")
 
 
 def execute_load_job(
@@ -76,13 +143,15 @@ def ingestTable(df: pd.DataFrame, table_name: str):
 
     table = TABLE_CONFIG[table_name]
 
+    df = dedupe_df(df, key_cols=table["keys"], order_cols=table["order_cols"])
+
     staging_table_ref = dataset_ref.table(table["staging_table"])
     createTableIfNotExists(staging_table_ref, schema=table["schema"])
     execute_load_job_staging(df, staging_table_ref, table["schema"])
 
     table_ref = dataset_ref.table(table["table"])
     createTableIfNotExists(table_ref, schema=table["schema"])
-    # TODO: upsert records between staging and final using merge query
+    upsert_into_bq(table_name)
 
 
 def ingestCoindesk(df: pd.DataFrame):

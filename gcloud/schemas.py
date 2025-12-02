@@ -39,7 +39,7 @@ reddit_schema = [
     bigquery.SchemaField("title", "STRING", mode="REQUIRED"),
     bigquery.SchemaField("url", "STRING", mode="REQUIRED"),
     bigquery.SchemaField("description", "STRING", mode="REQUIRED"),
-    bigquery.SchemaField("created_utc", "FLOAT64", mode="REQUIRED"),
+    bigquery.SchemaField("created_utc", "STRING", mode="REQUIRED"),
     bigquery.SchemaField("subreddit", "STRING", mode="REQUIRED"),
 ]
 
